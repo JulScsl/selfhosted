@@ -1,0 +1,52 @@
+name: nginx-proxy
+
+services:
+  nginx-proxy:
+    container_name: nginx-proxy
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - conf:/etc/nginx/conf.d
+      - html:/usr/share/nginx/html
+      - certs:/etc/nginx/certs:ro
+      - ./client_max_body_size.conf:/etc/nginx/conf.d/client_max_body_size.conf
+
+  docker-gen:
+    container_name: nginx-proxy-gen
+    image: nginxproxy/docker-gen
+    restart: unless-stopped
+    command: -notify-sighup nginx-proxy -watch -wait 5s:30s /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - ./nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      - "com.github.nginx-proxy.docker-gen"
+
+  acme-companion:
+    container_name: nginx-proxy-acme
+    image: nginxproxy/acme-companion
+    restart: unless-stopped
+    environment:
+      - DEFAULT_EMAIL=${LETSENCRYPT_EMAIL_ADDRESS}
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - certs:/etc/nginx/certs:rw
+      - acme:/etc/acme.sh
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+networks:
+    default:
+        name: nginx-proxy
+
+volumes:
+  conf:
+  html:
+  certs:
+  acme:
+
