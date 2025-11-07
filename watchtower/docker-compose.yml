@@ -1,8 +1,7 @@
 name: watchtower
 
 services:
-  watchtower:
-    container_name: watchtower
+  app:
     image: containrrr/watchtower
     restart: unless-stopped
     volumes:
@@ -10,7 +9,3 @@ services:
     environment:
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_SCHEDULE=0 0 6 * * *
-
-networks:
-    default:
-        name: watchtower
