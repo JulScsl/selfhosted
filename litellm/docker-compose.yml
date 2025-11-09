@@ -1,0 +1,84 @@
+name: litellm
+
+services:
+  app:
+    image: ghcr.io/berriai/litellm:main-latest
+    restart: unless-stopped
+    volumes:
+      - ./config.yml:/app/config.yml
+    command:
+      - "--config=/app/config.yml"
+    ports:
+      - "4000:4000" # Map the container port to the host, change the host port if necessary
+    environment:
+      DATABASE_URL: "postgresql://${DB_USERNAME}:${DB_PASSWORD}@database:5432/${DB_DATABASE_NAME}"
+      STORE_MODEL_IN_DB: "True" # allows adding models to proxy via UI
+    env_file:
+      - .env # Load local .env file
+    networks:
+      - default
+      - nginx-proxy
+    depends_on:
+      - database  # Indicates that this service depends on the 'database' service, ensuring 'database' starts first
+    healthcheck:  # Defines the health check configuration for the container
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 http://localhost:4000/health/liveliness || exit 1" ]  # Command to execute for health check
+      interval: 30s  # Perform health check every 30 seconds
+      timeout: 10s   # Health check command times out after 10 seconds
+      retries: 3     # Retry up to 3 times if health check fails
+      start_period: 40s  # Wait 40 seconds after container start before beginning health checks
+
+  database:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_DATABASE_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persists Postgres data across container restarts
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${DB_DATABASE_NAME} -U ${DB_USERNAME}"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+  prometheus:
+    image: prom/prometheus
+    restart: unless-stopped
+    volumes:
+      - prometheus_data:/prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - default
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+
+  mcp-proxy:
+    build:
+      context: .
+      dockerfile: mcp-proxy.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      BRAVE_API_KEY: ${BRAVE_API_KEY}
+    volumes:
+      - ./mcp-servers.json:/config/servers.json:ro
+    networks:
+      - default
+    command: "--port=8080 --host=0.0.0.0 --pass-environment --named-server-config /config/servers.json"
+
+volumes:
+  prometheus_data:
+    driver: local
+  postgres_data:
+
+networks:
+  nginx-proxy:
+    external: true

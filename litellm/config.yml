@@ -1,0 +1,44 @@
+model_list:
+  - model_name: "openrouter/*"
+    litellm_params:
+      model: "openrouter/*"
+      api_key: "os.environ/OPENROUTER_API_KEY"
+      api_base: "https://openrouter.ai/api/v1"
+  - model_name: "openai/*"
+    litellm_params:
+      model: "openai/*"
+      api_key: "os.environ/OPENAI_API_KEY"
+      api_base: "https://api.openai.com/v1"
+
+access_groups:
+  default:
+    description: "Default tools available for all"
+    models:
+      - "openrouter/*"
+
+mcp_servers:
+  fetch:
+    url: "http://mcp-proxy:8080/servers/fetch/mcp"
+    transport: "http"
+    description: "Web content fetching"
+    access_groups:
+      - default
+  time:
+    url: "http://mcp-proxy:8080/servers/time/mcp"
+    transport: "http"
+    description: "Time awareness"
+    access_groups:
+      - default
+  search:
+    url: "http://mcp-proxy:8080/servers/search/mcp"
+    transport: "http"
+    description: "Brave web search"
+    access_groups:
+      - default
+
+litellm_settings:
+  pass_through_endpoints:
+    - "openrouter/"  # Pass model names directly through
+    - "openai/"  # Pass model names directly through
+  drop_params: false
+  set_verbose: false

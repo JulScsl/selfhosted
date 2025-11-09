@@ -1,0 +1,24 @@
+{
+    "mcpServers": {
+        "fetch": {
+            "command": "uvx",
+            "args": [
+                "mcp-server-fetch"
+            ]
+        },
+        "time": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "time-mcp"
+            ]
+        },
+        "search": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-brave-search"
+            ]
+        }
+    }
+}
