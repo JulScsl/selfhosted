@@ -1,4 +1,4 @@
-# README.md
+# My Self-Hosted Stack
 
 This repository contains a Docker-based infrastructure stack that supports two use cases:
 
