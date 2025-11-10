@@ -1,0 +1,25 @@
+name: open-webui
+
+services:
+  app:
+    image: ghcr.io/open-webui/open-webui:main-slim
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    environment:
+      USER_AGENT: openwebui
+    env_file:
+      - .env
+    networks:
+      - nginx-proxy
+    volumes:
+      - open-webui:/app/backend/data
+      - ./config.json:/app/backend/data/config.json
+
+networks:
+  nginx-proxy:
+    external: true
+
+volumes:
+  open-webui:
+

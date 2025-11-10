@@ -1,0 +1,54 @@
+{
+  "openai": {
+    "api_base_url": "http://litellm-app-1:4000",
+    "api_key": "${LITELLM_API_KEY}"
+  },
+  "audio": {
+    "tts": {
+      "enabled": true,
+      "engine": "openai",
+      "openai": {
+        "api_key": "${LITELLM_API_KEY}",
+        "api_base_url": "http://litellm-app-1:4000/v1",
+        "model": "gpt-4o-mini-tts",
+        "voice": "nova",
+        "split_on": "paragraphs"
+      }
+    },
+    "stt": {
+      "enabled": true,
+      "engine": "openai",
+      "openai": {
+        "api_key": "${LITELLM_API_KEY}",
+        "api_base_url": "http://litellm-app-1:4000/v1",
+        "model": "whisper-1"
+      }
+    }
+  },
+  "model_filter": {
+    "enabled": false,
+    "models": [
+      "*"
+    ]
+  },
+  "tool_server": {
+    "connections": [
+      {
+        "url": "http://litellm-app-1:4000/mcp",
+        "path": "openapi.json",
+        "type": "mcp",
+        "auth_type": "bearer",
+        "key": "${LITELLM_API_KEY}",
+        "config": {
+          "enable": true
+        },
+        "spec_type": "url",
+        "info": {
+          "id": "litellm",
+          "name": "LiteLLM",
+          "description": "MCP tools provided by LiteLLM"
+        }
+      }
+    ]
+  }
+}
